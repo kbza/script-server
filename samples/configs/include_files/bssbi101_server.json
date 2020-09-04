@@ -1,0 +1,11 @@
+{
+  "hidden": true,
+  "parameters": [
+    {
+      "name": "IP bi101",
+      "type": "ip4",
+      "default": "115.10.5.72",
+      "constant": true
+    }
+  ]
+}

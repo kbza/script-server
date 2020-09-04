@@ -8,6 +8,8 @@ from config.constants import FILE_TYPE_DIR, FILE_TYPE_FILE
 from utils import date_utils
 from utils.string_utils import is_blank
 
+from config.constants import PARAM_TYPE_MULTISELECT
+
 ENV_VAR_PREFIX = '$$'
 SECURE_MASK = '*' * 6
 
@@ -181,8 +183,8 @@ def is_empty(value):
     return (not value) and (value != 0) and (value is not False)
 
 
-def fill_parameter_values(parameter_configs, template, values):
-    result = template
+def fill_parameter_values(parameter_configs, template, values, *, support_arrays=False):
+    result_list = [template]
 
     for parameter_config in parameter_configs:
         if parameter_config.secure or parameter_config.no_value:
@@ -194,13 +196,30 @@ def fill_parameter_values(parameter_configs, template, values):
         if value is None:
             value = ''
 
+        if support_arrays and isinstance(value, list):
+            mapped_list = parameter_config.map_to_script(value)
+            new_list = []
+
+            if len(result_list) == 1:
+                result_list = result_list[0]
+            result_list = list(dict.fromkeys(result_list))
+            for mapped_value in mapped_list:
+                for result in result_list:
+                    new_list.append(result.replace('${' + parameter_name + '}', str(mapped_value))) 
+                    
+            result_list = new_list
+            continue
+
         if not isinstance(value, str):
             mapped_value = parameter_config.map_to_script(value)
             value = parameter_config.to_script_args(mapped_value)
 
-        result = result.replace('${' + parameter_name + '}', str(value))
+        result_list = [result.replace('${' + parameter_name + '}', str(value)) for result in result_list]
 
-    return result
+    if len(result_list) == 1:
+        return result_list[0]
+
+    return result_list
 
 
 def replace_auth_vars(text, username, audit_name):

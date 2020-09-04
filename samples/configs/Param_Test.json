@@ -1,0 +1,26 @@
+{
+  "name": "Param Test",
+  "script_path": "/home/platform/script-server_test/scripts/paramTest.sh",
+  "include": ["/home/platform/script-server_test/conf/platform_files/bssbi101_server.json" ,"${Server Select}"],
+  "parameters": [
+    {
+      "name": "Server Type",
+      "type": "multiselect",
+      "values": [
+        "app",
+        "bi",
+        "web",
+        "lts"
+      ],
+      "separator": "|"
+    },
+    {
+      "name": "Server Select",
+      "type": "multiselect",
+      "values": {
+        "script": "find /home/platform/script-server_test/conf/platform_files/ -regex '.*[${Server Type}]+[0-9]+_server.json' -type f"
+      },
+      "separator": ","
+    }
+  ]
+}

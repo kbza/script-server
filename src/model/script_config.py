@@ -228,6 +228,16 @@ class ConfigModel:
         if path is None:
             return None
 
+        
+        if not isinstance(path, str):
+            merged_dict={}
+            for path_item in path:
+                if 'parameters' in merged_dict:
+                    merged_dict['parameters']+=(self._path_to_json(path_item))['parameters']
+                else:
+                    merged_dict.update(self._path_to_json(path_item))
+            return merged_dict
+
         path = file_utils.normalize_path(path, self._config_folder)
 
         if os.path.exists(path):
@@ -290,19 +300,35 @@ class _TemplateProperty:
         required_parameters = set()
 
         if template:
-            while search_start < len(template):
-                match = pattern.search(template, search_start)
-                if not match:
-                    script_template += template[search_start:]
-                    break
-                param_start = match.start()
-                if param_start > search_start:
-                    script_template += template[search_start:param_start]
+            if isinstance(template, list):
+                for template_item in template:
+                    while search_start < len(template_item):
+                        match = pattern.search(template_item, search_start)
+                        if not match:
+                            script_template += template_item[search_start:]
+                            break
+                        param_start = match.start()
+                        if param_start > search_start:
+                            script_template += template_item[search_start:param_start]
 
-                param_name = match.group(1)
-                required_parameters.add(param_name)
+                        param_name = match.group(1)
+                        required_parameters.add(param_name)
 
-                search_start = match.end() + 1
+                        search_start = match.end() + 1
+            else:
+                while search_start < len(template):
+                    match = pattern.search(template, search_start)
+                    if not match:
+                        script_template += template[search_start:]
+                        break
+                    param_start = match.start()
+                    if param_start > search_start:
+                        script_template += template[search_start:param_start]
+
+                    param_name = match.group(1)
+                    required_parameters.add(param_name)
+
+                    search_start = match.end() + 1
 
         self.required_parameters = tuple(required_parameters)
 
@@ -335,7 +361,7 @@ class _TemplateProperty:
         if self._template is None:
             self.value = None
         elif values_filled:
-            self.value = fill_parameter_values(self._parameters, self._template, self._values)
+            self.value = fill_parameter_values(self._parameters, self._template, self._values, support_arrays=True)
         else:
             self.value = self._empty
 

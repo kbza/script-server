@@ -1,0 +1,11 @@
+{
+  "hidden": true,
+  "parameters": [
+    {
+      "name": "IP app102",
+      "type": "ip4",
+      "default": "115.10.5.67",
+      "constant": true
+    }
+  ]
+}
